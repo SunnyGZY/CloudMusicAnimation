@@ -105,6 +105,7 @@ public class GramophoneView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        hasShowRing = false;
         final int paddingLeft = getPaddingLeft();
         final int paddingRight = getPaddingLeft();
         final int paddingTop = getPaddingLeft();
@@ -152,12 +153,11 @@ public class GramophoneView extends View {
                     hasShowRing = true;
                 } else {
                     ring.setShouldDraw(false);
-                    hasShowRing = false;
                 }
             }
         }
 
-        if (!hasShowRing) {
+        if (!hasShowRing && mRingList.size() != 0) {
             mRingList.clear();
         }
         invalidate();
