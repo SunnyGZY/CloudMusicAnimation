@@ -40,6 +40,7 @@ public class GramophoneView extends View {
     private float mRotateDegrees = 0;
     private int ringPadding = DisplayUtil.dp2px(getContext(), 20);
     private int cdCoverR;
+    private boolean hasShowRing = false;
 
     public GramophoneView(Context context) {
         super(context);
@@ -131,7 +132,7 @@ public class GramophoneView extends View {
         // 画星球
         for (Ring ring : mRingList) {
             if (ring.isShouldDraw()) {
-                int alpha = 110 * (ringPadding * 4 - (ring.getR() - cdCoverR)) / (ringPadding * 4) - 40;
+                int alpha = 100 * (ringPadding * 4 - (ring.getR() - cdCoverR)) / (ringPadding * 4) - 10;
                 if (alpha != 0) {
                     mOrbitPaint.setColor(Color.argb(alpha, 255, 255, 255));
                     mOrbitPaint.setStrokeWidth(4);
@@ -148,12 +149,17 @@ public class GramophoneView extends View {
                         ring.setR(ring.getR() + 1);
                         ring.setAngle(ring.getAngle() - 0.02);
                     }
+                    hasShowRing = true;
                 } else {
                     ring.setShouldDraw(false);
+                    hasShowRing = false;
                 }
             }
         }
 
+        if (!hasShowRing) {
+            mRingList.clear();
+        }
         invalidate();
     }
 
