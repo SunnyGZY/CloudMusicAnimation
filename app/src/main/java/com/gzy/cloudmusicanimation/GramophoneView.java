@@ -29,18 +29,41 @@ import java.util.List;
  */
 public class GramophoneView extends View {
 
+    /**
+     * CD封面图
+     */
     private Drawable mDrawable;
+    /**
+     * CD封面图画笔
+     */
     private Paint mCdCoverPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    /**
+     * CD外边缘画笔
+     */
     private Paint mCdOutPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    /**
+     * 星球轨道画笔
+     */
     private Paint mOrbitPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    /**
+     * 画CD封面所需数据
+     */
     private BitmapShader mBitmapShader;
     private Bitmap mBitmap;
     private Matrix mMatrix;
+    /**
+     * 当前绘制的星球及轨道
+     */
     private List<Ring> mRingList = new ArrayList<>();
+    /**
+     * 当前CD旋转的角度
+     */
     private float mRotateDegrees = 0;
+    /**
+     * 轨道与轨道之间的距离
+     */
     private int ringPadding = DisplayUtil.dp2px(getContext(), 20);
-    private int cdCoverR;
-    private boolean hasShowRing = false;
+    private int mCdCoverR;
 
     public GramophoneView(Context context) {
         super(context);
@@ -105,7 +128,8 @@ public class GramophoneView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        hasShowRing = false;
+        // 当前是否还有正在显示的行星轨迹
+        boolean hasShowRing = false;
         final int paddingLeft = getPaddingLeft();
         final int paddingRight = getPaddingLeft();
         final int paddingTop = getPaddingLeft();
@@ -114,26 +138,25 @@ public class GramophoneView extends View {
         int height = getHeight() - paddingTop - paddingBottom;
         int halfSize = Math.min(width, height) / 2;
 
-        // 中间CD封面图半径
-        cdCoverR = halfSize * 3 / 5;
-        int translateLength = halfSize - cdCoverR;
-
+        // CD封面绘制半径
+        mCdCoverR = halfSize * 3 / 5;
         // 画CD
-        float mScale = (cdCoverR * 2.0f) / Math.min(mBitmap.getHeight(), mBitmap.getWidth());
+        int translateLength = halfSize - mCdCoverR;
+        float mScale = (mCdCoverR * 2.0f) / Math.min(mBitmap.getHeight(), mBitmap.getWidth());
         mMatrix.setScale(mScale, mScale);
         mBitmapShader.setLocalMatrix(mMatrix);
         mCdCoverPaint.setShader(mBitmapShader);
         canvas.translate(translateLength, translateLength);
         canvas.rotate(mRotateDegrees, width / 2 - translateLength, height / 2 - translateLength);
         mCdOutPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorCdOutRing));
-        canvas.drawCircle(cdCoverR, cdCoverR, cdCoverR + DisplayUtil.dp2px(getContext(), 4), mCdOutPaint);
-        canvas.drawCircle(cdCoverR, cdCoverR, cdCoverR, mCdCoverPaint);
+        canvas.drawCircle(mCdCoverR, mCdCoverR, mCdCoverR + DisplayUtil.dp2px(getContext(), 4), mCdOutPaint);
+        canvas.drawCircle(mCdCoverR, mCdCoverR, mCdCoverR, mCdCoverPaint);
         mRotateDegrees += 0.5;
 
         // 画星球
         for (Ring ring : mRingList) {
             if (ring.isShouldDraw()) {
-                int alpha = 100 * (ringPadding * 4 - (ring.getR() - cdCoverR)) / (ringPadding * 4) - 10;
+                int alpha = 100 * (ringPadding * 4 - (ring.getR() - mCdCoverR)) / (ringPadding * 4) - 10;
                 if (alpha != 0) {
                     mOrbitPaint.setColor(Color.argb(alpha, 255, 255, 255));
                     mOrbitPaint.setStrokeWidth(4);
@@ -146,7 +169,7 @@ public class GramophoneView extends View {
                     canvas.drawCircle(width / 2 + x - translateLength,
                             height / 2 + y - translateLength, ring.getPlanetR(), mOrbitPaint);
 
-                    if (ring.getR() < cdCoverR + ringPadding * 4) {
+                    if (ring.getR() < mCdCoverR + ringPadding * 4) {
                         ring.setR(ring.getR() + 1);
                         ring.setAngle(ring.getAngle() - 0.02);
                     }
@@ -188,7 +211,7 @@ public class GramophoneView extends View {
         int planetR = (int) (Math.random() * 10);
         for (Ring ring : mRingList) {
             if (!ring.isShouldDraw()) {
-                ring.setR(cdCoverR);
+                ring.setR(mCdCoverR);
                 ring.setAngle(angle);
                 ring.setPlanetR(planetR);
                 ring.setShouldDraw(true);
@@ -197,7 +220,7 @@ public class GramophoneView extends View {
         }
 
         Ring ring = new Ring();
-        ring.setR(cdCoverR);
+        ring.setR(mCdCoverR);
         ring.setAngle(angle);
         ring.setPlanetR(planetR);
         ring.setShouldDraw(true);
@@ -205,9 +228,21 @@ public class GramophoneView extends View {
     }
 
     private class Ring {
+        /**
+         * 轨迹半径
+         */
         int r;
+        /**
+         * 行星初始位置的角度
+         */
         double angle;
+        /**
+         * 行星半径
+         */
         int planetR;
+        /**
+         * 是否绘制
+         */
         private boolean shouldDraw;
 
         public int getR() {
