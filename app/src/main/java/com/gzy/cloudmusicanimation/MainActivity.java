@@ -10,6 +10,8 @@ import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 
 /**
@@ -21,6 +23,7 @@ import android.widget.ImageView;
 public class MainActivity extends AppCompatActivity {
 
     private ImageView mBgImageView;
+    private GramophoneView mGramophoneView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +36,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void initView() {
         mBgImageView = findViewById(R.id.bg_image_view);
+        mGramophoneView = findViewById(R.id.gramophone_view);
+        mGramophoneView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e("gzy", "mGramophoneView onClicked");
+            }
+        });
     }
 
     private void initBackGround() {
@@ -58,22 +68,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Bitmap changeLumBitmap(Bitmap bitmap, float lum) {
-        //        float hue = 1f;
-//        ColorMatrix hueMatrix = new ColorMatrix();
-//        hueMatrix.setRotate(0, hue);
-//        hueMatrix.setRotate(1, hue);
-//        hueMatrix.setRotate(2, hue);
-//
-//        float saturation = 1f;
-//        ColorMatrix saturationMatrix = new ColorMatrix();
-//        saturationMatrix.setSaturation(saturation);
-
         ColorMatrix lumMatrix = new ColorMatrix();
         lumMatrix.setScale(lum, lum, lum, 1);
-
         ColorMatrix colorMatrix = new ColorMatrix();
-//        colorMatrix.postConcat(hueMatrix);
-//        colorMatrix.postConcat(saturationMatrix);
         colorMatrix.postConcat(lumMatrix);
         Bitmap bmp = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bmp);

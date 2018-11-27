@@ -5,7 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
-import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Shader;
@@ -14,7 +14,6 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -22,7 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 唱片机 View
+ * 网易云音乐动画
+ * 寂寞星球
  *
  * @author gaozongyang
  * @date 2018/11/23
@@ -37,7 +37,6 @@ public class GramophoneView extends View {
     private Bitmap mBitmap;
     private Matrix mMatrix;
     private List<Ring> mRingList = new ArrayList<>();
-    private List<Ring> mRemoveRingList = new ArrayList<>();
     private float mRotateDegrees = 0;
     private int ringPadding = DisplayUtil.dp2px(getContext(), 20);
     private int cdCoverR;
@@ -111,13 +110,13 @@ public class GramophoneView extends View {
         final int paddingBottom = getPaddingLeft();
         int width = getWidth() - paddingLeft - paddingRight;
         int height = getHeight() - paddingTop - paddingBottom;
-        Log.e("gzy", "width=" + width + " height=" + height);
         int halfSize = Math.min(width, height) / 2;
 
         // 中间CD封面图半径
         cdCoverR = halfSize * 3 / 5;
         int translateLength = halfSize - cdCoverR;
 
+        // 画CD
         float mScale = (cdCoverR * 2.0f) / Math.min(mBitmap.getHeight(), mBitmap.getWidth());
         mMatrix.setScale(mScale, mScale);
         mBitmapShader.setLocalMatrix(mMatrix);
@@ -129,75 +128,81 @@ public class GramophoneView extends View {
         canvas.drawCircle(cdCoverR, cdCoverR, cdCoverR, mCdCoverPaint);
         mRotateDegrees += 0.5;
 
+        // 画星球
+        for (Ring ring : mRingList) {
+            if (ring.isShouldDraw()) {
+                int alpha = 110 * (ringPadding * 4 - (ring.getR() - cdCoverR)) / (ringPadding * 4) - 40;
+                if (alpha != 0) {
+                    mOrbitPaint.setColor(Color.argb(alpha, 255, 255, 255));
+                    mOrbitPaint.setStrokeWidth(4);
+                    mOrbitPaint.setStyle(Paint.Style.STROKE);
+                    canvas.drawCircle(width / 2 - translateLength,
+                            height / 2 - translateLength, ring.getR(), mOrbitPaint);
+                    mOrbitPaint.setStyle(Paint.Style.FILL);
+                    int x = (int) (Math.cos(ring.getAngle()) * (ring.getR()));
+                    int y = (int) (Math.sin(ring.getAngle()) * (ring.getR()));
+                    canvas.drawCircle(width / 2 + x - translateLength,
+                            height / 2 + y - translateLength, ring.getPlanetR(), mOrbitPaint);
 
-//        if (mRingList.size() == 0 || mRingList.get(mRingList.size() - 1).getR() - cdCoverR >= ringPadding) {
-//            double angle = Math.random() * 360;
-//            Ring ring = new Ring();
-//            ring.setR(cdCoverR);
-//            ring.setAngle(angle);
-//            mRingList.add(ring);
-//        }
-
-        mRemoveRingList.clear();
-        for (Ring ring1 : mRingList) {
-
-            float[] colorMatrix = {1, 0, 0, 0, 0,
-                    0, 1, 0, 0, 0,
-                    0, 0, 1, 0, 0,
-                    0, 0, 0, ((float) (ringPadding * 4) - (ring1.getR() - cdCoverR)) / 100, 0};
-            mOrbitPaint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
-
-            mOrbitPaint.setStrokeWidth(4);
-            mOrbitPaint.setStyle(Paint.Style.STROKE);
-
-            canvas.drawCircle(width / 2 - translateLength,
-                    height / 2 - translateLength, ring1.getR(), mOrbitPaint);
-
-            mOrbitPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorAccentLight));
-            mOrbitPaint.setStyle(Paint.Style.FILL);
-            int x = (int) (Math.cos(ring1.getAngle()) * (ring1.getR()));
-            int y = (int) (Math.sin(ring1.getAngle()) * (ring1.getR()));
-            canvas.drawCircle(width / 2 + x - translateLength,
-                    height / 2 + y - translateLength, ring1.getPlanetR(), mOrbitPaint);
-
-            if (ring1.getR() < cdCoverR + ringPadding * 4) {
-                ring1.setR(ring1.getR() + 1);
-                ring1.setAngle(ring1.getAngle() - 0.02);
-            } else {
-                mRemoveRingList.add(ring1);
+                    if (ring.getR() < cdCoverR + ringPadding * 4) {
+                        ring.setR(ring.getR() + 1);
+                        ring.setAngle(ring.getAngle() - 0.02);
+                    }
+                } else {
+                    ring.setShouldDraw(false);
+                }
             }
         }
 
-        mRingList.removeAll(mRemoveRingList);
+        invalidate();
+    }
 
-        postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                invalidate();
-            }
-        }, 20);
+    @Override
+    public boolean performClick() {
+        return super.performClick();
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                double angle = Math.random() * 360;
-                Ring ring = new Ring();
+                showPlanet();
+                break;
+            case MotionEvent.ACTION_UP:
+                performClick();
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
+
+    private void showPlanet() {
+        double angle = Math.random() * 360;
+        int planetR = (int) (Math.random() * 10);
+        for (Ring ring : mRingList) {
+            if (!ring.isShouldDraw()) {
                 ring.setR(cdCoverR);
                 ring.setAngle(angle);
-                ring.setPlanetR((int) (Math.random() * 10));
-                mRingList.add(ring);
-                return true;
-            default:
-                return true;
+                ring.setPlanetR(planetR);
+                ring.setShouldDraw(true);
+                return;
+            }
         }
+
+        Ring ring = new Ring();
+        ring.setR(cdCoverR);
+        ring.setAngle(angle);
+        ring.setPlanetR(planetR);
+        ring.setShouldDraw(true);
+        mRingList.add(ring);
     }
 
     private class Ring {
         int r;
         double angle;
         int planetR;
+        private boolean shouldDraw;
 
         public int getR() {
             return r;
@@ -215,12 +220,20 @@ public class GramophoneView extends View {
             this.angle = angle;
         }
 
-        public int getPlanetR() {
+        int getPlanetR() {
             return planetR;
         }
 
-        public void setPlanetR(int planetR) {
+        void setPlanetR(int planetR) {
             this.planetR = planetR;
+        }
+
+        boolean isShouldDraw() {
+            return shouldDraw;
+        }
+
+        void setShouldDraw(boolean shouldDraw) {
+            this.shouldDraw = shouldDraw;
         }
     }
 }
