@@ -11,7 +11,7 @@ import android.content.Context;
  *
  * nexus 1440*2560分辨率，density值为 3.5
  */
-public class DisplayUtil {
+public class DisplayUtils {
 
     /**
      * 将px值转换为dp值，保证尺寸大小不变

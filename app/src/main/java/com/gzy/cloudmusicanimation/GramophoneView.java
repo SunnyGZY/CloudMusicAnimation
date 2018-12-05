@@ -62,7 +62,7 @@ public class GramophoneView extends View {
     /**
      * 轨道与轨道之间的距离
      */
-    private int ringPadding = DisplayUtil.dp2px(getContext(), 20);
+    private int ringPadding = DisplayUtils.dp2px(getContext(), 20);
     private int mCdCoverR;
 
     public GramophoneView(Context context) {
@@ -87,18 +87,21 @@ public class GramophoneView extends View {
         initData();
     }
 
+    public void setCdCoverDrawable(Drawable drawable) {
+        this.mDrawable = drawable;
+        initData();
+    }
+
     private void initAttrs(Context context, AttributeSet attrs) {
         TypedArray attributes = context.obtainStyledAttributes(attrs, R.styleable.GramophoneView);
         if (attributes != null) {
-            mDrawable = attributes.getDrawable(R.styleable.GramophoneView_src);
-
             attributes.recycle();
         }
     }
 
     private void initData() {
         if (mDrawable == null) {
-            mDrawable = ContextCompat.getDrawable(getContext(), R.drawable.cd_cover);
+            mDrawable = ContextCompat.getDrawable(getContext(), R.drawable.cd_cover_default);
         }
         mBitmap = ((BitmapDrawable) mDrawable).getBitmap();
         mBitmapShader = new BitmapShader(mBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
@@ -113,7 +116,7 @@ public class GramophoneView extends View {
         int heightSpecMode = MeasureSpec.getMode(heightMeasureSpec);
         int heightSpecSize = MeasureSpec.getSize(heightMeasureSpec);
         if (widthSpecMode == MeasureSpec.AT_MOST && heightSpecMode == MeasureSpec.AT_MOST) {
-            size = DisplayUtil.dp2px(getContext(), 340);
+            size = DisplayUtils.dp2px(getContext(), 340);
             setMeasuredDimension(size, size);
         } else if (widthSpecMode == MeasureSpec.AT_MOST) {
             setMeasuredDimension(heightSpecSize, heightSpecSize);
@@ -149,14 +152,14 @@ public class GramophoneView extends View {
         canvas.translate(translateLength, translateLength);
         canvas.rotate(mRotateDegrees, width / 2 - translateLength, height / 2 - translateLength);
         mCdOutPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorCdOutRing));
-        canvas.drawCircle(mCdCoverR, mCdCoverR, mCdCoverR + DisplayUtil.dp2px(getContext(), 4), mCdOutPaint);
+        canvas.drawCircle(mCdCoverR, mCdCoverR, mCdCoverR + DisplayUtils.dp2px(getContext(), 4), mCdOutPaint);
         canvas.drawCircle(mCdCoverR, mCdCoverR, mCdCoverR, mCdCoverPaint);
-        mRotateDegrees += 0.5;
+        mRotateDegrees += 0.25;
 
         // 画星球
         for (Ring ring : mRingList) {
             if (ring.isShouldDraw()) {
-                int alpha = 100 * (ringPadding * 4 - (ring.getR() - mCdCoverR)) / (ringPadding * 4) - 10;
+                int alpha = (int) (100 * (ringPadding * 4 - (ring.getR() - mCdCoverR)) / (ringPadding * 4) - 10);
                 if (alpha != 0) {
                     mOrbitPaint.setColor(Color.argb(alpha, 255, 255, 255));
                     mOrbitPaint.setStrokeWidth(4);
@@ -170,7 +173,7 @@ public class GramophoneView extends View {
                             height / 2 + y - translateLength, ring.getPlanetR(), mOrbitPaint);
 
                     if (ring.getR() < mCdCoverR + ringPadding * 4) {
-                        ring.setR(ring.getR() + 1);
+                        ring.setR(ring.getR() + 1.8f);
                         ring.setAngle(ring.getAngle() - 0.02);
                     }
                     hasShowRing = true;
@@ -208,7 +211,7 @@ public class GramophoneView extends View {
 
     private void showPlanet() {
         double angle = Math.random() * 360;
-        int planetR = (int) (Math.random() * 10);
+        int planetR = (int) (Math.random() * 12);
         for (Ring ring : mRingList) {
             if (!ring.isShouldDraw()) {
                 ring.setR(mCdCoverR);
@@ -231,7 +234,7 @@ public class GramophoneView extends View {
         /**
          * 轨迹半径
          */
-        int r;
+        float r;
         /**
          * 行星初始位置的角度
          */
@@ -245,11 +248,11 @@ public class GramophoneView extends View {
          */
         private boolean shouldDraw;
 
-        public int getR() {
+        public float getR() {
             return r;
         }
 
-        public void setR(int r) {
+        public void setR(float r) {
             this.r = r;
         }
 

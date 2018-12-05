@@ -17,6 +17,5 @@
         android:id="@+id/gramophone_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        app:src="@drawable/cd_cover" />
+        android:layout_gravity="center" />
 </FrameLayout>

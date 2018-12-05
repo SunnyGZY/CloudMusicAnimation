@@ -1,13 +1,13 @@
 package com.gzy.cloudmusicanimation;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -23,7 +23,6 @@ import android.widget.ImageView;
 public class MainActivity extends AppCompatActivity {
 
     private ImageView mBgImageView;
-    private GramophoneView mGramophoneView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,22 +30,25 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initView();
-        initBackGround();
     }
 
     private void initView() {
         mBgImageView = findViewById(R.id.bg_image_view);
-        mGramophoneView = findViewById(R.id.gramophone_view);
-        mGramophoneView.setOnClickListener(new View.OnClickListener() {
+        GramophoneView gramophoneView = findViewById(R.id.gramophone_view);
+        Drawable drawable = getDrawable(R.drawable.cd_cover_02);
+        gramophoneView.setCdCoverDrawable(drawable);
+        gramophoneView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.e("gzy", "mGramophoneView onClicked");
             }
         });
+        initBackGround(drawable);
     }
 
-    private void initBackGround() {
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.cd_cover);
+    private void initBackGround(Drawable drawable) {
+        BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+        Bitmap bitmap = bitmapDrawable.getBitmap();
         Bitmap resizeBitmap = resizeImage(bitmap, bitmap.getWidth() / 18, bitmap.getHeight() / 18);
         Bitmap changeLumBitmap = changeLumBitmap(resizeBitmap, 0.5f);
         Bitmap blurBitmap = RSBlurProcess.rsBlur(MainActivity.this, changeLumBitmap
