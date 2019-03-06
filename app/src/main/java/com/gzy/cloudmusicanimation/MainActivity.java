@@ -8,6 +8,9 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -22,7 +25,13 @@ import android.widget.ImageView;
  */
 public class MainActivity extends AppCompatActivity {
 
+    // 定义播放声音的MediaPlayer
+    private MediaPlayer mPlayer;
+    // 定义系统的频谱
+    private Visualizer mVisualizer;
+
     private ImageView mBgImageView;
+    private GramophoneView mGramophoneView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,20 +39,60 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initView();
+        initAudioPlayer();
     }
 
     private void initView() {
         mBgImageView = findViewById(R.id.bg_image_view);
-        GramophoneView gramophoneView = findViewById(R.id.gramophone_view);
-        Drawable drawable = getDrawable(R.drawable.cd_cover_02);
-        gramophoneView.setCdCoverDrawable(drawable);
-        gramophoneView.setOnClickListener(new View.OnClickListener() {
+        mGramophoneView = findViewById(R.id.gramophone_view);
+        Drawable drawable = getDrawable(R.drawable.lemon);
+        mGramophoneView.setCdCoverDrawable(drawable);
+        mGramophoneView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.e("gzy", "mGramophoneView onClicked");
             }
         });
         initBackGround(drawable);
+    }
+
+    private void initAudioPlayer() {
+        //设置音频流 - STREAM_MUSIC：音乐回放即媒体音量
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        mPlayer = MediaPlayer.create(this, R.raw.lemon);
+        setupVisualizer();
+        mPlayer.start();
+    }
+
+    /**
+     * 初始化频谱
+     */
+    private void setupVisualizer() {
+        mVisualizer = new Visualizer(mPlayer.getAudioSessionId());
+        mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
+        mVisualizer.setDataCaptureListener(
+                new Visualizer.OnDataCaptureListener() {
+                    //这个回调应该采集的是快速傅里叶变换有关的数据
+                    @Override
+                    public void onFftDataCapture(Visualizer visualizer,
+                                                 byte[] fft, int samplingRate) {
+                    }
+
+                    //这个回调应该采集的是波形数据
+                    @Override
+                    public void onWaveFormDataCapture(Visualizer visualizer,
+                                                      byte[] waveform, int samplingRate) {
+                        for (int i = 0; i < waveform.length - 1; i++) {
+                            // 根据波形值计算该矩形的高度
+                            float top = (byte) (waveform[i + 1] + 128);
+                            if (top <= -80) {
+                                mGramophoneView.showPlanet();
+                            }
+                            Log.e("gaozy", top + "");
+                        }
+                    }
+                }, Visualizer.getMaxCaptureRate() / 2, true, false);
+        mVisualizer.setEnabled(true);
     }
 
     private void initBackGround(Drawable drawable) {

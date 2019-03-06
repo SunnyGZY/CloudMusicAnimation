@@ -14,7 +14,6 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -77,12 +76,6 @@ public class GramophoneView extends View {
 
     public GramophoneView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        initAttrs(context, attrs);
-        initData();
-    }
-
-    public GramophoneView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
         initAttrs(context, attrs);
         initData();
     }
@@ -189,27 +182,13 @@ public class GramophoneView extends View {
         invalidate();
     }
 
-    @Override
-    public boolean performClick() {
-        return super.performClick();
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                showPlanet();
-                break;
-            case MotionEvent.ACTION_UP:
-                performClick();
-                break;
-            default:
-                break;
+    public void showPlanet() {
+        for (Ring ring : mRingList) {
+            if (ring.getR() - mCdCoverR < 50) {
+                return;
+            }
         }
-        return true;
-    }
 
-    private void showPlanet() {
         double angle = Math.random() * 360;
         int planetR = (int) (Math.random() * 12);
         for (Ring ring : mRingList) {
